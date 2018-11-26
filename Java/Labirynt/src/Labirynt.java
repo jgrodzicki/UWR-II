@@ -8,9 +8,10 @@ import java.io.IOException;
 
 public class Labirynt extends Canvas implements KeyListener {
 
-    private final int ROZMIAR_POLA = 25;
+    static final int ROZMIAR_POLA = 25;
 
     private Dane dane;
+
     private Image kV;
     private Image kH;
     private Image kL;
@@ -147,25 +148,31 @@ public class Labirynt extends Canvas implements KeyListener {
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_DOWN:
-                if (!dane.sciany[ziomekX/Dane.SIZE][ziomekY/Dane.SIZE][2])
-                    ziomekY += Dane.SIZE;
+                if (!dane.sciany[ziomekX/ROZMIAR_POLA][ziomekY/ROZMIAR_POLA][2])
+                    ziomekY += ROZMIAR_POLA;
                 break;
             case KeyEvent.VK_UP:
-                if (!dane.sciany[ziomekX/Dane.SIZE][ziomekY/Dane.SIZE][0])
-                    ziomekY -= Dane.SIZE;
+                if (!dane.sciany[ziomekX/ROZMIAR_POLA][ziomekY/ROZMIAR_POLA][0])
+                    ziomekY -= ROZMIAR_POLA;
                 break;
             case KeyEvent.VK_RIGHT:
-                if (!dane.sciany[ziomekX/Dane.SIZE][ziomekY/Dane.SIZE][1])
-                    ziomekX += Dane.SIZE;
+                if (!dane.sciany[ziomekX/ROZMIAR_POLA][ziomekY/ROZMIAR_POLA][1])
+                    ziomekX += ROZMIAR_POLA;
                 break;
             case KeyEvent.VK_LEFT:
-                if (!dane.sciany[ziomekX/Dane.SIZE][ziomekY/Dane.SIZE][3])
-                    ziomekX -= Dane.SIZE;
+                if (!dane.sciany[ziomekX/ROZMIAR_POLA][ziomekY/ROZMIAR_POLA][3])
+                    ziomekX -= ROZMIAR_POLA;
+                break;
+
+            case KeyEvent.VK_A:
+                ziomekX = (Dane.SIZE-1) * ROZMIAR_POLA;
+                ziomekY = ziomekX;
                 break;
         }
 
         repaint();
-        if (ziomekX/Dane.SIZE == Dane.SIZE && ziomekY/Dane.SIZE == Dane.SIZE-1) {
+
+        if (ziomekX/ROZMIAR_POLA == Dane.SIZE && ziomekY/ROZMIAR_POLA == Dane.SIZE-1) {
             ifFinished = true;
             System.out.print("WYGRANANANA");
         }
