@@ -1,0 +1,12 @@
+div.center {
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid black;
+}
+
+span.center {
+  display: block;
+  text-align: center;
+  border: 1px solid black;
+}

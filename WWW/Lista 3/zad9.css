@@ -1,0 +1,31 @@
+.withBlurredBg {
+  width: 200px;
+  height: auto;
+  display: inline-block;
+  transition: .4s;
+  margin: 4px;
+}
+
+.withBlurredBg img {
+  width: 100%;
+  height: 100%;
+  transition: .4s;
+}
+
+.withBlurredBg:hover img {
+  filter: blur(4px) brightness(75%);
+}
+
+.withBlurredBg :not(img) {
+  position: absolute;
+  top: 30%;
+  width: 100%;
+  text-align: center;
+  color: white;
+  opacity: 0;
+  transition: .3s;
+}
+
+.withBlurredBg:hover :not(img){
+  opacity: 1;
+}

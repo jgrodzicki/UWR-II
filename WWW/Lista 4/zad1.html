@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Zadanie 1</title>
+  <meta charset="utf-8">
+</head>
+<body>
+  <div id="content"></div>
+</body>
+</html>
+
+<!--
+w konsoli:
+var d = document.createElement("div");
+d.setAttribute("id", "menu");
+d.style.border = "2px solid black";
+document.getElementById("content").appendChild(d);
+
+var redLink = document.createElement("a");
+redLink.innerHTML = "set to red";
+redLink.style.color = "red";
+redLink.style.display = "block";
+redLink.onclick = function() {
+  document.getElementById("menu").border = "2px solid red";
+}
+document.getElementById("content").appendChild(redLink);
+
+dla czarnego i niebieskiego analogicznie jak dla czerwonego
+-->

@@ -1,0 +1,6 @@
+span {background-color: skyblue;}
+div p {background-color: yellow;}
+div > p {background-color: green;}
+#exampleid {background-color: red;}
+li:first-of-type + li {color: red;}
+.exampleclass {color: gray;}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Zadanie 2</title>
+  <meta charset="utf-8">
+  <script src="zad2.js"></script>
+  <style>
+    p {font-size: 75%; color: red;}
+    input {width: 200px; box-sizing: border-box;}
+    form {width: 200px;}
+  </style>
+</head>
+<body>
+  <form onsubmit="return validate()" action="zad2a.html">
+    Numer konta</br>
+    <input type="text" id="numerkonta" required></br>
+    <p id="numerkontaerror"></p>
+
+    PESEL</br>
+    <input type="text" name="pesel" id="pesel" required></br>
+    <p id="peselerror"></p>
+
+    Data urodzenia (yyyy.mm.dd)</br>
+    <input type="date" name="dataurodzenia" id="dataurodzenia" required></br>
+    <p id="dataurodzeniaerror"></p>
+
+    E-mail</br>
+    <input type="email" name="email" id="email" required></br>
+    <p id="emailerror"></p>
+
+    <input type="submit" name="submit"></br>
+  </form>
+</body>
+</html>

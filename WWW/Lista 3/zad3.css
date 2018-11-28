@@ -1,0 +1,33 @@
+div.relative {
+  /* Relatywnie do jego położenia spoczynkowego */
+  position: relative;
+  left: 25px;
+  top: 25px;
+  padding: 15px;
+  background-color: skyblue;
+}
+
+div.absolute {
+  /* Względem brzegów strony */
+  position: absolute;
+  left: 50px;
+  top: 50px;
+  padding: 15px;
+  background-color: green;
+}
+
+div.static {
+  /* Usuwa pozycjonowanie */
+  position: static;
+  padding: 15px;
+  background-color: pink;
+}
+
+div.fixed {
+  /* Względem krawędzi strony */
+  position: fixed;
+  left: 100px;
+  top: 100px;
+  padding: 15px;
+  background-color: yellow;
+}

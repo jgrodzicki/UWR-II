@@ -1,0 +1,28 @@
+div.panel {
+  position: relative;
+  width: 675px;
+  height: 200px;
+  border: 2px solid black;
+  padding: 15px;
+  margin: 10px auto 10px auto;
+  background-color: #BEBEBE;
+}
+
+div.produkt {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  padding: 10px;
+  margin: 10px;
+  background-color: #505050;
+}
+
+div.info {
+  position: absolute;
+  width: 420px;
+  height: 160px;
+  padding: 10px;
+  margin: 10px;
+  right: 20px;
+  background-color: #DCDCDC;
+}
