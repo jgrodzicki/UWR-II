@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/jakubgrodzicki/Documents/Studia/IV semestr/Cpp/Lista 3/main.cpp
+iostream
+-
+punkt.h
+/Users/jakubgrodzicki/Documents/Studia/IV semestr/Cpp/Lista 3/punkt.h
+odcinek.h
+/Users/jakubgrodzicki/Documents/Studia/IV semestr/Cpp/Lista 3/odcinek.h
+trojkat.h
+/Users/jakubgrodzicki/Documents/Studia/IV semestr/Cpp/Lista 3/trojkat.h
+
+/Users/jakubgrodzicki/Documents/Studia/IV semestr/Cpp/Lista 3/odcinek.h
+
+/Users/jakubgrodzicki/Documents/Studia/IV semestr/Cpp/Lista 3/punkt.h
+
+/Users/jakubgrodzicki/Documents/Studia/IV semestr/Cpp/Lista 3/trojkat.h
+

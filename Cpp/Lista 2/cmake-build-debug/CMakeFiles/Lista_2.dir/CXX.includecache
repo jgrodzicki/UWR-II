@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/jakubgrodzicki/Documents/Studia/IV semestr/Cpp/Lista 2/main.cpp
+iostream
+-
+string
+-
+vector
+-
+limits.h
+-
+
