@@ -3,19 +3,32 @@ package sample;
 import javafx.event.ActionEvent;
 
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import javafx.util.StringConverter;
 
 public class Controller implements Initializable {
+
+    private static List<SingleRecord> records = new ArrayList<>();
+    private static double sumConst = 0.0;
+    private static double sumCycle = 0.;
+
+    private String nameText;
+    private String categoryText;
+    private String dateText;
+    private String priceText;
+    private String currencyText;
+
+    private SimpleDateFormat dateFormat;
 
     private ResourceBundle bundle;
     @FXML private Button submitBtn;
@@ -25,6 +38,7 @@ public class Controller implements Initializable {
     @FXML private TextField priceTF;
     @FXML private Text errorText;
     @FXML private Text currency;
+    @FXML private TextArea historyTA;
 
     private String category[] = new String[2];
 
@@ -33,7 +47,7 @@ public class Controller implements Initializable {
             return false;
 
         try {
-            Integer.parseInt(price);
+            Double.parseDouble(price);
             java.sql.Date.valueOf(dateDP.getValue());
         } catch (NumberFormatException | NullPointerException e) {
             return false;
@@ -48,8 +62,20 @@ public class Controller implements Initializable {
         String price = priceTF.getText();
 
         if (isValid(name, index, price)) {
+            Date date = java.sql.Date.valueOf(dateDP.getValue());
             errorText.setVisible(false);
-            System.out.println(name + "\t" + category[index] + "\t" + java.sql.Date.valueOf(dateDP.getValue()) + "\t" + price);
+            setTexts();
+            SingleRecord added = new SingleRecord(name, category[index], dateFormat.format(date), Double.parseDouble(price), currencyText);
+            records.add(added);
+            if (index == 0)
+                sumConst += Double.parseDouble(price);
+            else
+                sumCycle += Double.parseDouble(price);
+
+            System.out.println(added.toString());
+            setHistoryTA();
+//            historyTA.setText(historyTA.getText() + "\n" + added.toString());
+//            System.out.println(name + "\t" + category[index] + "\t" + date + "\t" + price);
         }
         else
             errorText.setVisible(true);
@@ -60,6 +86,11 @@ public class Controller implements Initializable {
         bundle = resources;
         category[0] = resources.getString("cat_constant");
         category[1] = resources.getString("cat_cycle");
+
+        setHistoryTA();
+
+        String pattern = resources.getString("dateFormat");
+        dateFormat = new SimpleDateFormat(pattern);
 
         dateDP.setConverter(new StringConverter<LocalDate>() {
             String pattern = resources.getString("dateFormat");
@@ -83,5 +114,21 @@ public class Controller implements Initializable {
                 }
             }
         });
+    }
+
+    private void setHistoryTA() {
+        String res = "";
+        for (SingleRecord rec : records)
+            res += rec.toString() + "\n";
+        res += "\n\nsumConst: " + sumConst + "\t\tsumCycle: " + sumCycle;
+        historyTA.setText(res);
+    }
+
+    private void setTexts() {
+        nameText = bundle.getString("name");
+        categoryText = bundle.getString("category");
+        dateText = bundle.getString("date");
+        priceText = bundle.getString("price");
+        currencyText = bundle.getString("currency");
     }
 }

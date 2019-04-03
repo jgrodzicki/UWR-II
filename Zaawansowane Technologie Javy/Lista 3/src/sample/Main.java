@@ -18,7 +18,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        System.out.println("LECE KURWA");
         stage = primaryStage;
         Button btnEN = new Button();
         btnEN.setText("English");
@@ -27,13 +26,13 @@ public class Main extends Application {
         });
 
         Button btnPL = new Button();
-        btnPL.setText("Rodak");
+        btnPL.setText("Polski");
         btnPL.setOnAction((event) -> {
                 loadView(new Locale("pl", "PL"));
         });
 
         Button btnNG = new Button();
-        btnNG.setText("Murzyn");
+        btnNG.setText("Nigerian");
         btnNG.setOnAction((event) -> {
                 loadView(new Locale("igbo", "IGBO"));
         });
@@ -41,7 +40,7 @@ public class Main extends Application {
         VBox root = new VBox(20);
         root.getChildren().add(HBoxBuilder.create().spacing(10).style("-fx-background-color: gray").padding(new Insets(5)).children(btnEN, btnPL, btnNG).build());
         root.getChildren().add(new StackPane());
-        primaryStage.setScene(new Scene(root, 300, 300));
+        primaryStage.setScene(new Scene(root, 600, 300));
         primaryStage.show();
     }
 
