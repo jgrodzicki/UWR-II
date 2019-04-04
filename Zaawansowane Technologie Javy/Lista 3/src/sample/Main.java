@@ -40,7 +40,7 @@ public class Main extends Application {
         VBox root = new VBox(20);
         root.getChildren().add(HBoxBuilder.create().spacing(10).style("-fx-background-color: gray").padding(new Insets(5)).children(btnEN, btnPL, btnNG).build());
         root.getChildren().add(new StackPane());
-        primaryStage.setScene(new Scene(root, 600, 300));
+        primaryStage.setScene(new Scene(root, 900, 400));
         primaryStage.show();
     }
 

@@ -1,5 +1,7 @@
 package sample;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 
 import java.net.URL;
@@ -20,7 +22,7 @@ public class Controller implements Initializable {
 
     private static List<SingleRecord> records = new ArrayList<>();
     private static double sumConst = 0.0;
-    private static double sumCycle = 0.;
+    private static double sumCycle = 0.0;
 
     private String nameText;
     private String categoryText;
@@ -38,7 +40,8 @@ public class Controller implements Initializable {
     @FXML private TextField priceTF;
     @FXML private Text errorText;
     @FXML private Text currency;
-    @FXML private TextArea historyTA;
+    @FXML private TextArea historyConstantTA;
+    @FXML private TextArea historyCycleTA;
 
     private String category[] = new String[2];
 
@@ -65,17 +68,15 @@ public class Controller implements Initializable {
             Date date = java.sql.Date.valueOf(dateDP.getValue());
             errorText.setVisible(false);
             setTexts();
-            SingleRecord added = new SingleRecord(name, category[index], dateFormat.format(date), Double.parseDouble(price), currencyText);
+            SingleRecord added = new SingleRecord(name, category[index], index, dateFormat.format(date), Double.parseDouble(price), currencyText);
             records.add(added);
             if (index == 0)
                 sumConst += Double.parseDouble(price);
             else
                 sumCycle += Double.parseDouble(price);
 
-            System.out.println(added.toString());
-            setHistoryTA();
-//            historyTA.setText(historyTA.getText() + "\n" + added.toString());
-//            System.out.println(name + "\t" + category[index] + "\t" + date + "\t" + price);
+            sethistoryConstantTA();
+            setHistoryCycleTA();
         }
         else
             errorText.setVisible(true);
@@ -87,7 +88,12 @@ public class Controller implements Initializable {
         category[0] = resources.getString("cat_constant");
         category[1] = resources.getString("cat_cycle");
 
-        setHistoryTA();
+        ObservableList<String> list = FXCollections.observableArrayList();
+        list.addAll(category[0], category[1]);
+        categoryCB.setItems(list);
+
+        sethistoryConstantTA();
+        setHistoryCycleTA();
 
         String pattern = resources.getString("dateFormat");
         dateFormat = new SimpleDateFormat(pattern);
@@ -116,12 +122,26 @@ public class Controller implements Initializable {
         });
     }
 
-    private void setHistoryTA() {
+    private void sethistoryConstantTA() {
         String res = "";
-        for (SingleRecord rec : records)
-            res += rec.toString() + "\n";
-        res += "\n\nsumConst: " + sumConst + "\t\tsumCycle: " + sumCycle;
-        historyTA.setText(res);
+        for (SingleRecord rec : records) {
+            if (!rec.isCycle())
+                res += rec.toString() + "\n";
+        }
+        String sum = bundle.getString("sumConstant");
+        res += "\n\n" + sum + ": " + sumConst;
+        historyConstantTA.setText(res);
+    }
+
+    private void setHistoryCycleTA() {
+        String res = "";
+        for (SingleRecord rec : records) {
+            if (rec.isCycle())
+                res += rec.toString() + "\n";
+        }
+        String sum = bundle.getString("sumCycle");
+        res += "\n\n" + sum + ": " + sumCycle;
+        historyCycleTA.setText(res);
     }
 
     private void setTexts() {
