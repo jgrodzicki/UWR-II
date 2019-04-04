@@ -24,12 +24,6 @@ public class Controller implements Initializable {
     private static double sumConst = 0.0;
     private static double sumCycle = 0.0;
 
-    private String nameText;
-    private String categoryText;
-    private String dateText;
-    private String priceText;
-    private String currencyText;
-
     private SimpleDateFormat dateFormat;
 
     private ResourceBundle bundle;
@@ -39,7 +33,6 @@ public class Controller implements Initializable {
     @FXML private DatePicker dateDP;
     @FXML private TextField priceTF;
     @FXML private Text errorText;
-    @FXML private Text currency;
     @FXML private TextArea historyConstantTA;
     @FXML private TextArea historyCycleTA;
 
@@ -67,8 +60,8 @@ public class Controller implements Initializable {
         if (isValid(name, index, price)) {
             Date date = java.sql.Date.valueOf(dateDP.getValue());
             errorText.setVisible(false);
-            setTexts();
-            SingleRecord added = new SingleRecord(name, category[index], index, dateFormat.format(date), Double.parseDouble(price), currencyText);
+            String currencyText = bundle.getString("currency");
+            SingleRecord added = new SingleRecord(name, index, dateFormat.format(date), Double.parseDouble(price), currencyText);
             records.add(added);
             if (index == 0)
                 sumConst += Double.parseDouble(price);
@@ -142,13 +135,5 @@ public class Controller implements Initializable {
         String sum = bundle.getString("sumCycle");
         res += "\n\n" + sum + ": " + sumCycle;
         historyCycleTA.setText(res);
-    }
-
-    private void setTexts() {
-        nameText = bundle.getString("name");
-        categoryText = bundle.getString("category");
-        dateText = bundle.getString("date");
-        priceText = bundle.getString("price");
-        currencyText = bundle.getString("currency");
     }
 }

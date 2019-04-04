@@ -1,22 +1,14 @@
 package sample;
 
-import javafx.util.StringConverter;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
-
 public class SingleRecord {
     private String name;
     private boolean isCycle;
-    private String category;
     private String date;
     private double price;
     private String currency;
 
-    public SingleRecord(String n, String cat, int index, String d, double p, String c) {
+    public SingleRecord(String n, int index, String d, double p, String c) {
         name = n;
-        category = cat;
         if (index == 0)
             isCycle = false;
         else
