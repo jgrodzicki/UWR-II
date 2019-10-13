@@ -12,6 +12,33 @@ class Formula:
     def __str__(self):
         pass
 
+    def czy_taut(f):
+        def znajdz(f):
+            if f.__class__ is Zmienna:
+                return [f.zmienna]
+
+            if f.__class__ is Not:
+                return znajdz(f.formula)
+
+            if f.__class__ is not Prawda:
+                ff1 = znajdz(f.formula1)
+                ff2 = znajdz(f.formula2)
+                if ff1 is not None and ff2 is not None:
+                    return ff1 + ff2
+                if ff1 is not None:
+                    return ff1
+                return ff2
+
+        zmienne = np.unique(znajdz(f))
+        all_poss = []
+        for i in range(len(zmienne) + 1):
+            all_poss.extend(list(itertools.combinations(zmienne, i)))
+
+        for p in all_poss:
+            if not f.oblicz({zm: zm in p for zm in zmienne}):
+                return False
+        return True
+
 
 class Zmienna(Formula):
     def __init__(self, zmienna):
@@ -100,42 +127,25 @@ class Prawda(Formula):
         return ' TRUE '
 
 
-def czy_taut(f):
-    def znajdz(f):
-        if f.__class__ is Zmienna:
-            return [f.zmienna]
+class Falsz(Formula):
+    def __init__(self):
+        super().__init__()
 
-        if f.__class__ is Not:
-            return znajdz(f.formula)
+    def oblicz(self, zmienne):
+        return False
 
-        if f.__class__ is not Prawda:
-            ff1 = znajdz(f.formula1)
-            ff2 = znajdz(f.formula2)
-            if ff1 is not None and ff2 is not None:
-                return ff1 + ff2
-            if ff1 is not None:
-                return ff1
-            return ff2
-
-    zmienne = np.unique(znajdz(f))
-    all_poss = []
-    for i in range(len(zmienne) + 1):
-        all_poss.extend(list(itertools.combinations(zmienne, i)))
-
-    for p in all_poss:
-        wartosciowanie = {}
-        for z in zmienne:
-            if z in p:
-                wartosciowanie[z] = True
-            else:
-                wartosciowanie[z] = False
-
-        if not f.oblicz(wartosciowanie):
-            return False
-    return True
+    def __str__(self):
+        return ' FALSE '
 
 
-b = Impl(Zmienna('x'), And(Zmienna('y'), Prawda()))
-print(czy_taut(And(Zmienna('x'), Not(Impl(Rwn(Zmienna('x'), Prawda()), Zmienna('y'))))))
+a = Impl(Zmienna('x'), And(Zmienna('y'), Prawda()))
+print(str(a))
+print(a.oblicz({'x': True, 'y': True}))
 
-print(czy_taut(Or(Zmienna('x'), Not(Zmienna('x')))))
+b = And(Zmienna('x'), Not(Impl(Rwn(Zmienna('x'), Prawda()), Zmienna('y'))))
+print(b)
+print(b.czy_taut())
+
+c = Or(Zmienna('x'), Not(Zmienna('x')))
+print(c)
+print(c.czy_taut())
