@@ -184,7 +184,7 @@ class Board:
 
     def find_best(self, depth, player):
         def alphabeta(state, depth, alpha, beta, maximizing_player):
-            if depth == 0 or state.terminal() or state.moves(maximizing_player) == [None]: #todo: o co cho
+            if depth == 0 or state.terminal() or state.moves(maximizing_player) == [None]:
                 return state.heuristic()
 
             children = state.moves(maximizing_player)
