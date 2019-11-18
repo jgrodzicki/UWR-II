@@ -3,6 +3,7 @@ function createFs(n) { // tworzy tablicę n funkcji
     for (var i = 0; i < n; i++) {
         fs[i] =
             function (j) {
+                
                 return function () {
                     return j;
                 }
