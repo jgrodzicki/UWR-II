@@ -1,19 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from os import system
-import time
+import matplotlib.animation as animation
 
 
 class Game_of_live:
     def __init__(self, n):
         self.n = n
         self.board = np.random.randint(2, size=(n, n))
-
-    def draw(self):
-        system('clear')
-        for r in self.board:
-            print(r)
         
     def count_alive_neighs(self, x, y):
         min_x, max_x = max(0, x-1), min(self.n-1, x+1)
@@ -26,8 +19,8 @@ class Game_of_live:
                     continue
                 res += self.board[y1][x1]
         return res
-    
-    def next_board(self):
+
+    def update(self, _):
         new_board = self.board*0
         for y, row in enumerate(self.board):
             for x, e in enumerate(row):
@@ -43,16 +36,14 @@ class Game_of_live:
                     else:
                         new_board[y][x] = 0
         self.board = new_board
-        return new_board
-    
-    def run(self):
-        while True:
-            self.next_board()
-            self.draw()
-            time.sleep(1)
+        
+        mat.set_data(self.board)
+        return [mat]
 
-                
 
-g = Game_of_live(10)
-g.run()
-
+if __name__ == "__main__":
+    g = Game_of_live(10)
+    fig, ax = plt.subplots()
+    mat = ax.matshow(g.board)
+    ani = animation.FuncAnimation(fig, g.update, interval=100)
+    plt.show()
