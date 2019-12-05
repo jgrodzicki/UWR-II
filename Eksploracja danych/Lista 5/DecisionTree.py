@@ -263,7 +263,7 @@ class Tree:
                 child_error = (w.info['num_samples'] / N) * w.info['confidence_error']
                 children_error += child_error
      
-        
+
             if children_error > parent_error:
                 self.split = None
                 self.info['splitted'] = True
