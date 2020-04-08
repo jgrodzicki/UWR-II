@@ -8,11 +8,12 @@ const ipAddresses = new Map();
 
 rl.on('line', (line) => {
     const ipAddress = line.split(" ")[0];
-    if (ipAddress in ipAddresses) {
-        ipAddresses[ipAddress] += 1;
-    } else {
-        ipAddresses[ipAddress] = 1;
-    }
+    //if (ipAddress in ipAddresses) {
+    //    ipAddresses[ipAddress] += 1;
+    //} else {
+    //    ipAddresses[ipAddress] = 1;
+    //}
+    ipAddresses[ipAddress] = ++ipAddresses[ipAddress] || 1;
 })
 
 rl.on('close', () => {
