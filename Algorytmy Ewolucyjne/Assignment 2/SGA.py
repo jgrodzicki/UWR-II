@@ -4,9 +4,56 @@ from tqdm import trange
 import matplotlib.pyplot as plt
 
 
+
+def PMX(ind1, ind2, separator_no=2):
+    new_ind1, new_ind2 = ind1.copy(), ind2.copy()
+    idxs = sorted(np.random.choice(len(ind1), separator_no, replace=False))
+    
+    group = np.random.choice(separator_no-1)
+    start, end = idxs[group], idxs[group+1]
+    
+    tmp = ind1[start:end].copy()
+    ind1[start:end] = ind2[start:end]
+    ind2[start:end] = tmp
+    
+    for i in range(len(ind1)):
+        if start <= i < end:
+            continue
+            
+        while ind1[i] in ind1[start:end]:
+            # get elem from the other ind
+            idx_of_elem = np.nonzero(ind1[start:end] == ind1[i])[0][0]
+            ind1[i] = ind2[start+idx_of_elem]
+        
+        while ind2[i] in ind2[start:end]:
+            # get elem from the other ind
+            idx_of_elem = np.nonzero(ind2[start:end] == ind2[i])[0][0]
+            ind2[i] = ind1[start+idx_of_elem]
+
+    return ind1, ind2
+
+def tsp_objective_function(p, dist):
+    s = 0.0
+    for i in range(len(p)):
+        s += dist[p[i-1], p[i]]
+    return s
+
+def reverse_sequence_mutation(p, *args):
+    a = np.random.choice(len(p), 2, False)
+    i, j = a.min(), a.max()
+    q = p.copy()
+    q[i:j+1] = q[i:j+1][::-1]
+    return q
+
+def default_generate_population_function(chromosome_length, population_size):
+    current_population = np.array([np.random.permutation(chromosome_length).astype(np.int64) 
+                                       for _ in range(population_size)])
+    return current_population
+
+
 class SGA:
     
-    def __init__(self, population_size, chromosome_length, crossover_func, objective_func, distance_matrix, mutation_func, replace_method='mu+lambda', number_of_offspring=None, crossover_probability = 0.95, mutation_probability = 0.25, number_of_iterations = 250, no_groups=2):
+    def __init__(self, population_size, chromosome_length, distance_matrix, crossover_func=PMX, objective_func=tsp_objective_function, mutation_func=reverse_sequence_mutation, generate_population_func=default_generate_population_function, replace_method='mu+lambda', number_of_offspring=None, crossover_probability = 0.95, mutation_probability = 0.25, number_of_iterations = 250, no_groups=2):
         
         self.population_size = population_size
         self.chromosome_length = chromosome_length
@@ -14,6 +61,7 @@ class SGA:
         self.crossover_func = crossover_func
         self.objective_func = objective_func
         self.mutation_func = mutation_func
+        self.generate_population_func = generate_population_func
         self.distance_matrix = distance_matrix
         
         if number_of_offspring is None:
@@ -77,9 +125,7 @@ class SGA:
         
     
     def _generate_random_population(self):
-        current_population = np.array([np.random.permutation(self.chromosome_length).astype(np.int64) 
-                                       for _ in range(self.population_size)])
-        return current_population
+        return self.generate_population_func(self.chromosome_length, self.population_size)
     
     
     def _generate_children_population(self, current_population, parent_indices):
