@@ -21,7 +21,7 @@ class ES:
         if parent_choice_method == 'random':
             self.parent_selection = self._random
         elif parent_choice_method == 'roulette':
-            self.parent_selection = self._roulette
+            self.parent_selection = self._roulette_method
         
         assert replacement_method in ['mulambda', 'lambda'], 'replacement method has to be either "mulambda" or "lambda'
         if replacement_method == 'mulambda':
