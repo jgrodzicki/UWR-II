@@ -2,7 +2,9 @@ from tqdm import trange
 import numpy as np
 
 class ES:
-    def __init__(self, domain, dims, population_size, offspring_size, parent_choice_method, replacement_method, tau, tau0, cost_func, max_iters):
+    def __init__(self, domain, dims, population_size, offspring_size, parent_choice_method, replacement_method, tau, tau0, cost_func, max_iters, st_funcs=[]):
+        # st_funcs - list of functions which has to be less or equal to 0
+        
         self.domain = domain
         self.dims = dims
         self.population_size = population_size
@@ -11,6 +13,7 @@ class ES:
         self.tau0 = tau0
         self.cost_func = cost_func
         self.max_iters = max_iters
+        self.st_funcs = st_funcs
         
         assert offspring_size <= population_size, 'offspring size cannot be larger than population size'
         
@@ -61,14 +64,14 @@ class ES:
     def _generate_population(self):
         pop = []
         for _ in range(self.population_size):
-            x = np.random.uniform(self.domain[0], self.domain[1], size=self.dims)
+            x = self._random_ind()
             sigmas = np.random.uniform(0.5, 1.5, size=self.dims)
             pop.append(np.vstack((x, sigmas)))
         self.population = np.array(pop)
     
     
     def mutate(self, pop):
-        x, sigmas = pop[:, 0], pop[:, 1]
+        xs, sigmas = pop[:, 0], pop[:, 1]
         mutated = []
         
         for i in range(len(pop)):
@@ -76,20 +79,40 @@ class ES:
             eps = np.random.random(self.dims) * self.tau
             
             new_sigma = sigmas[i] * np.exp(eps0 + eps)
-            new_x = x[i] + np.random.random(self.dims) * new_sigma
+            new_x = xs[i] + np.random.random(self.dims) * new_sigma
             
             its = 0
-            while np.any((new_x < self.domain[0], new_x > self.domain[1])) and its < 5:
+            while not self._if_satisfies_constrains(new_x):
                 its += 1
-                new_x = x[i] + np.random.random(self.dims) * new_sigma
+                new_x = xs[i] + np.random.random(self.dims) * new_sigma
             
-            if np.any((new_x < self.domain[0], new_x > self.domain[1])):
-                new_x = np.random.uniform(self.domain[0], self.domain[1], size=self.dims)
+            if not self._if_satisfies_constrains(new_x):
+                new_x = self._random_ind()
                 new_sigma = np.ones(self.dims)
             
             mutated.append(np.vstack((new_x, new_sigma)))
             
         return np.array(mutated)
+    
+    
+    def _random_ind(self):
+        is_not_good = True
+        while is_not_good:
+            is_not_good = False
+            x = np.random.uniform(self.domain[0], self.domain[1], size=self.dims)
+            for f in self.st_funcs:
+                if f(x) > 0:
+                    is_not_good = True
+                    continue
+        return x
+    
+    def _if_satisfies_constrains(self, x):
+        if np.any((x < self.domain[0], x > self.domain[1])):
+            return False
+        for f in self.st_funcs:
+            if f(x) > 0:
+                return False
+        return True
         
     
     def _roulette_method(self, pop, costs):
