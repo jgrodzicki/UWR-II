@@ -45,7 +45,7 @@ class ES:
         
         try:
             for iter_ in range_:
-                parents = self.parent_selection(self.population, costs)
+                parents = self.parent_selection(self.population, costs)[:, :]
                 children = self.mutate(parents)
                 children_costs = self.cost_func(children)
                 self.population, costs = self.replace(self.population, costs, children, children_costs)
@@ -59,7 +59,6 @@ class ES:
                     self.best_ind = self.population[np.argmin(costs)]
 
                 if verbose and iter_%log_interv == 0:
-    #                 print(f'iter: {iter_}, min: {round(costs.min(), 2)}\tmax: {costs.max()}\tmean: {costs.mean()}')
                     print('iter: %d,\tmin: %.4f,\tmean: %.4f,\tmax: %.4f' % (iter_, costs.min(), costs.mean(), costs.max()))
         except KeyboardInterrupt:
             pass
@@ -69,19 +68,18 @@ class ES:
         self.iter_max = np.array(self.iter_max)
         
     
-    def history(self, with_plot=False):
+    def history(self, glob_min=None, with_plot=False, with_text=True, title=None):
         if with_plot:
-            plt.figure(figsize=(15, 9))
-            plt.title('Costs during iterations')
-            if what == 'min':
-                plt.plot(self.iter_min, label='min')
-            elif what == 'all':
-                plt.plot(self.iter_min, label='min')
-                plt.plot(self.iter_mean, label='mean')
-                plt.plot(self.iter_max, label='max')
+            plt.figure(figsize=(10, 6))
+            plt.plot(self.iter_min)
+            if glob_min is not None:
+                plt.plot(np.full(len(self.iter_min), glob_min), c='r')
+            if title is not None:
+                plt.title(title)
             plt.show()
         
-        print(f'\nBest cost function: {round(self.iter_min.min(), 5)} at iter: {np.argmin(self.iter_min)}\nind x: {self.best_ind[0]}')
+        if with_text:
+            print(f'\nBest cost function: {round(self.iter_min.min(), 5)} at iter: {np.argmin(self.iter_min)}')
     
     
     def _generate_population(self):
@@ -96,16 +94,20 @@ class ES:
         mutated = []
         
         for i in range(len(pop)):
-            eps0 = np.random.random() * self.tau0
-            eps = np.random.random(self.dims) * self.tau
+#             eps0 = np.random.random() * self.tau0
+#             eps = np.random.random(self.dims) * self.tau
+            eps0 = np.random.normal(0, self.tau0)
+            eps = np.random.normal(0, self.tau, size=self.dims)
             
             new_sigma = sigmas[i] * np.exp(eps0 + eps)
-            new_x = xs[i] + np.random.random(self.dims) * new_sigma
+#             new_x = xs[i] + np.random.random(self.dims) * new_sigma
+            new_x = xs[i] + np.random.normal(0, new_sigma, size=self.dims)
             
             its = 0
             while (np.any(new_x < self.domain[:,0]) or np.any(new_x > self.domain[:,1])) and its < 4:
                 its += 1
-                new_x = xs[i] + np.random.random(self.dims) * new_sigma
+#                 new_x = xs[i] + np.random.random(self.dims) * new_sigma
+                new_x = xs[i] + np.random.normal(0, new_sigma, size=self.dims)
             
             if (np.any(new_x < self.domain[:,0]) or np.any(new_x > self.domain[:,1])):
                 new_x, new_sigma = self._random_ind()
@@ -123,12 +125,12 @@ class ES:
     
     def _roulette_method(self, pop, costs):
         if min(costs) == max(costs):
-            idxs = np.random.choice(len(pop), size=self.offspring_size, replace=False)
+            idxs = np.random.choice(len(pop), size=self.offspring_size, replace=True)
         else:
             std_costs = (costs - min(costs)) / (costs - min(costs)).max()
             p_costs = (1 - std_costs)
             idxs = np.random.choice(len(pop), p=p_costs / sum(p_costs), size=self.offspring_size, replace=True)
-        return pop[idxs]
+        return pop[idxs, :, :]
     
     
     def _random(self, pop, costs):
