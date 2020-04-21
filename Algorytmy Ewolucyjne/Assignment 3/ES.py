@@ -1,11 +1,13 @@
 from tqdm import trange
 import numpy as np
+import matplotlib.pyplot as plt
 
 class ES:
-    def __init__(self, domain, dims, population_size, offspring_size, parent_choice_method, replacement_method, tau, tau0, cost_func, max_iters, st_funcs=[]):
-        # st_funcs - list of functions which has to be less or equal to 0
-        
-        self.domain = domain
+    def __init__(self, domain, dims, cost_func, tau, tau0, population_size=1000, offspring_size=500, parent_choice_method='roulette', replacement_method='mulambda', max_iters=1000):
+        if type(domain) is tuple:
+            self.domain = np.array([domain] * dims)
+        else:
+            self.domain = np.array(domain)
         self.dims = dims
         self.population_size = population_size
         self.offspring_size = offspring_size
@@ -13,7 +15,6 @@ class ES:
         self.tau0 = tau0
         self.cost_func = cost_func
         self.max_iters = max_iters
-        self.st_funcs = st_funcs
         
         assert offspring_size <= population_size, 'offspring size cannot be larger than population size'
         
@@ -30,16 +31,17 @@ class ES:
             self.replace = self._lambda
         
     
-    def run(self, verbose=False, with_tqdm=True):
+    def run(self, verbose=False, with_tqdm=True, log_interv=50):
         if with_tqdm:
             range_ = trange(self.max_iters, position=0, leave=True)
         else:
             range_ = range(self.max_iters)
+            
+        self.iter_min, self.iter_mean, self.iter_max = [], [], []
         
         self._generate_population()
         costs = self.cost_func(self.population)
-        best = self.population[costs.argmin()]
-        best_cost = costs.min()
+        self.best_ind, best_cost = self.population[np.argmin(costs)], costs.min()
         
         try:
             for iter_ in range_:
@@ -47,26 +49,45 @@ class ES:
                 children = self.mutate(parents)
                 children_costs = self.cost_func(children)
                 self.population, costs = self.replace(self.population, costs, children, children_costs)
-
+                
+                self.iter_min.append(costs.min())
+                self.iter_mean.append(costs.mean())
+                self.iter_max.append(costs.max())
+                
                 if costs.min() < best_cost:
                     best_cost = costs.min()
-                    best = self.population[costs.argmin()]
+                    self.best_ind = self.population[np.argmin(costs)]
 
-                if verbose and iter_%50 == 0:
+                if verbose and iter_%log_interv == 0:
     #                 print(f'iter: {iter_}, min: {round(costs.min(), 2)}\tmax: {costs.max()}\tmean: {costs.mean()}')
-                    print('iter: %d, min: %.4f,\tmean: %.4f,\tmax: %.4f' % (iter_, costs.min(), costs.mean(), costs.max()))
+                    print('iter: %d,\tmin: %.4f,\tmean: %.4f,\tmax: %.4f' % (iter_, costs.min(), costs.mean(), costs.max()))
         except KeyboardInterrupt:
             pass
         
-        return best, best_cost
+        self.iter_min = np.array(self.iter_min)
+        self.iter_mean = np.array(self.iter_mean)
+        self.iter_max = np.array(self.iter_max)
+        
+    
+    def history(self, with_plot=False):
+        if with_plot:
+            plt.figure(figsize=(15, 9))
+            plt.title('Costs during iterations')
+            if what == 'min':
+                plt.plot(self.iter_min, label='min')
+            elif what == 'all':
+                plt.plot(self.iter_min, label='min')
+                plt.plot(self.iter_mean, label='mean')
+                plt.plot(self.iter_max, label='max')
+            plt.show()
+        
+        print(f'\nBest cost function: {round(self.iter_min.min(), 5)} at iter: {np.argmin(self.iter_min)}\nind x: {self.best_ind[0]}')
     
     
     def _generate_population(self):
         pop = []
         for _ in range(self.population_size):
-            x = self._random_ind()
-            sigmas = np.random.uniform(0.5, 1.5, size=self.dims)
-            pop.append(np.vstack((x, sigmas)))
+            pop.append(self._random_ind())
         self.population = np.array(pop)
     
     
@@ -82,13 +103,12 @@ class ES:
             new_x = xs[i] + np.random.random(self.dims) * new_sigma
             
             its = 0
-            while not self._if_satisfies_constrains(new_x):
+            while (np.any(new_x < self.domain[:,0]) or np.any(new_x > self.domain[:,1])) and its < 4:
                 its += 1
                 new_x = xs[i] + np.random.random(self.dims) * new_sigma
             
-            if not self._if_satisfies_constrains(new_x):
-                new_x = self._random_ind()
-                new_sigma = np.ones(self.dims)
+            if (np.any(new_x < self.domain[:,0]) or np.any(new_x > self.domain[:,1])):
+                new_x, new_sigma = self._random_ind()
             
             mutated.append(np.vstack((new_x, new_sigma)))
             
@@ -96,28 +116,20 @@ class ES:
     
     
     def _random_ind(self):
-        is_not_good = True
-        while is_not_good:
-            is_not_good = False
-            x = np.random.uniform(self.domain[0], self.domain[1], size=self.dims)
-            for f in self.st_funcs:
-                if f(x) > 0:
-                    is_not_good = True
-                    continue
-        return x
+        x = np.random.uniform(self.domain[:,0], self.domain[:,1], size=self.dims)
+        sigma = np.random.uniform(0.5, 1.5, size=self.dims)
+        return np.vstack((x, sigma))
     
-    def _if_satisfies_constrains(self, x):
-        if np.any((x < self.domain[0], x > self.domain[1])):
-            return False
-        for f in self.st_funcs:
-            if f(x) > 0:
-                return False
-        return True
-        
     
     def _roulette_method(self, pop, costs):
-        idxs = np.random.choice(len(pop), p=costs/sum(costs), size=self.offspring_size, replace=True)
-        return pop[idxs, :, :]
+        if min(costs) == max(costs):
+            idxs = np.random.choice(len(pop), size=self.offspring_size, replace=False)
+        else:
+            std_costs = (costs - min(costs)) / (costs - min(costs)).max()
+            p_costs = (1 - std_costs)
+            idxs = np.random.choice(len(pop), p=p_costs / sum(p_costs), size=self.offspring_size, replace=True)
+        return pop[idxs]
+    
     
     def _random(self, pop, costs):
         idxs = np.random.choice(len(pop), size=self.offspring_size, replace=False)
