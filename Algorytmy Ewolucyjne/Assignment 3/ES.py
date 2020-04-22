@@ -95,19 +95,15 @@ class ES:
         mutated = []
         
         for i in range(len(pop)):
-#             eps0 = np.random.random() * self.tau0
-#             eps = np.random.random(self.dims) * self.tau
             eps0 = np.random.normal(0, self.tau0)
             eps = np.random.normal(0, self.tau, size=self.dims)
             
             new_sigma = sigmas[i] * np.exp(eps0 + eps)
-#             new_x = xs[i] + np.random.random(self.dims) * new_sigma
             new_x = xs[i] + np.random.normal(0, new_sigma, size=self.dims)
             
             its = 0
             while (np.any(new_x < self.domain[:,0]) or np.any(new_x > self.domain[:,1])) and its < 4:
                 its += 1
-#                 new_x = xs[i] + np.random.random(self.dims) * new_sigma
                 new_x = xs[i] + np.random.normal(0, new_sigma, size=self.dims)
             
             if (np.any(new_x < self.domain[:,0]) or np.any(new_x > self.domain[:,1])):
@@ -120,7 +116,7 @@ class ES:
     
     def _random_ind(self):
         x = np.random.uniform(self.domain[:,0], self.domain[:,1], size=self.dims)
-        sigma = np.random.uniform(0.5, 1.5, size=self.dims)
+        sigma = np.random.uniform(0.5, 2, size=self.dims)
         return np.vstack((x, sigma))
     
     
