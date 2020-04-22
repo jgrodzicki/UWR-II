@@ -59,7 +59,7 @@ class ES:
                     self.best_ind = self.population[np.argmin(costs)]
 
                 if verbose and iter_%log_interv == 0:
-                    print('iter: %d,\tmin: %.4f,\tmean: %.4f,\tmax: %.4f' % (iter_, costs.min(), costs.mean(), costs.max()))
+                    print(f'iter: {iter_},\tmin: {costs.min():.5},\tmean: {costs.mean():.5},\tmax: {costs.max():.5}')
         except KeyboardInterrupt:
             pass
         
@@ -71,7 +71,8 @@ class ES:
     def history(self, glob_min=None, with_plot=False, with_text=True, title=None):
         if with_plot:
             plt.figure(figsize=(10, 6))
-            plt.plot(self.iter_min)
+            idx = self.iter_min < 1e9
+            plt.plot(np.arange(len(self.iter_min))[idx], self.iter_min[idx])
             if glob_min is not None:
                 plt.plot(np.full(len(self.iter_min), glob_min), c='r')
             if title is not None:
@@ -130,12 +131,12 @@ class ES:
             std_costs = (costs - min(costs)) / (costs - min(costs)).max()
             p_costs = (1 - std_costs)
             idxs = np.random.choice(len(pop), p=p_costs / sum(p_costs), size=self.offspring_size, replace=True)
-        return pop[idxs, :, :]
+        return pop[idxs].copy()
     
     
     def _random(self, pop, costs):
         idxs = np.random.choice(len(pop), size=self.offspring_size, replace=False)
-        return pop[idxs, :, :]
+        return pop[idxs].copy()
     
     
     def _mulambda(self, pop, pop_costs, children, children_costs):
