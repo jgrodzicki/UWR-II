@@ -42,6 +42,9 @@ class MIMIC:
             
             if self.min_cost[it] < best_cost:
                 self.best_ind, best_cost = pop[np.argmin(costs)], self.min_cost[it]
+                
+            if verbose and it%50 == 0:
+                print(f'{it} / {self.max_iters},\tmin: {self.min_cost[it]}\tmean: {self.mean_cost[it]}\tmax: {self.max_cost[it]}')
             
     
     def plot_costs(self, extra_title):
