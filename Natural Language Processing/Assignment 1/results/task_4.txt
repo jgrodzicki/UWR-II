@@ -1,0 +1,166 @@
+Creating successor mapping: 100%|██████████████████████████████████████████████████████████████████████████████▉| 59134224/59134225 [05:05<00:00, 193656.75it/s]
+---------------------------------------- BIGRAM ----------------------------------------
+Computing naturalness: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:00<00:00, 196761.72it/s]
+Original: judyta dała wczoraj stefanowi czekoladki
+Reconstructed
+judyta dała wczoraj stefanowi czekoladki  --- score: 0.027777777777777776
+czekoladki dała wczoraj judyta stefanowi  --- score: 0.027777777777777776
+stefanowi judyta czekoladki dała wczoraj  --- score: 0.027777777777777776
+stefanowi judyta dała wczoraj czekoladki  --- score: 0.027777777777777776
+stefanowi czekoladki judyta dała wczoraj  --- score: 0.027777777777777776
+stefanowi czekoladki dała wczoraj judyta  --- score: 0.027777777777777776
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:00<00:00, 194857.33it/s]
+Original: babuleńka miała dwa rogate koziołki
+Reconstructed
+rogate miała dwa koziołki babuleńka  --- score: 0.04144144144144144
+miała dwa koziołki rogate babuleńka  --- score: 0.04144144144144144
+babuleńka miała dwa koziołki rogate  --- score: 0.04144144144144144
+miała dwa koziołki babuleńka rogate  --- score: 0.04144144144144144
+rogate babuleńka miała dwa koziołki  --- score: 0.04144144144144144
+babuleńka rogate miała dwa koziołki  --- score: 0.04144144144144144
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 720/720 [00:00<00:00, 175820.85it/s]
+Original: wczoraj wieczorem spotkałem pewną piękną kobietę
+Reconstructed
+spotkałem wczoraj wieczorem piękną kobietę pewną  --- score: 0.008103015075376885
+pewną kobietę piękną spotkałem wczoraj wieczorem  --- score: 0.008103015075376885
+kobietę spotkałem wczoraj wieczorem piękną pewną  --- score: 0.008103015075376885
+kobietę piękną pewną spotkałem wczoraj wieczorem  --- score: 0.008103015075376885
+piękną kobietę pewną spotkałem wczoraj wieczorem  --- score: 0.008103015075376885
+piękną kobietę spotkałem wczoraj wieczorem pewną  --- score: 0.008103015075376885
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:00<00:00, 133789.60it/s]
+Original: ciekawe jak dobrze to zadziała
+Reconstructed
+ciekawe jak to dobrze zadziała  --- score: 0.03349515170863929
+zadziała ciekawe jak to dobrze  --- score: 0.03349202175940706
+zadziała jak to dobrze ciekawe  --- score: 0.033170419475796104
+ciekawe zadziała jak to dobrze  --- score: 0.033169636988488044
+jak to dobrze zadziała ciekawe  --- score: 0.0331633770900236
+jak to dobrze ciekawe zadziała  --- score: 0.033161029628099435
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 720/720 [00:00<00:00, 186967.49it/s]
+Original: nie mam pojęcia o czym mówisz
+Reconstructed
+mówisz o czym nie mam pojęcia  --- score: 0.006865081862328645
+pojęcia o czym nie mam mówisz  --- score: 0.006845809341010876
+mówisz pojęcia o czym nie mam  --- score: 0.006845809341010876
+o czym nie mam pojęcia mówisz  --- score: 0.006845547129836485
+pojęcia mówisz o czym nie mam  --- score: 0.006741449293603096
+o czym nie mam mówisz pojęcia  --- score: 0.006721914561110936
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:00<00:00, 208758.39it/s]
+Original: niech ta szmata ci powie
+Reconstructed
+niech ci powie ta szmata  --- score: 0.017962962962962962
+ta szmata niech ci powie  --- score: 0.017962962962962962
+szmata ta niech ci powie  --- score: 0.017839506172839505
+ta niech ci powie szmata  --- score: 0.017839506172839505
+niech ta szmata powie ci  --- score: 0.01771604938271605
+powie ci niech ta szmata  --- score: 0.01771604938271605
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 720/720 [00:00<00:00, 204143.78it/s]
+Original: siała baba mak nie wiedziała jak
+Reconstructed
+siała baba mak jak nie wiedziała  --- score: 0.0065046575526068896
+jak nie wiedziała siała baba mak  --- score: 0.0065038198632891035
+mak siała baba jak nie wiedziała  --- score: 0.00650046910601796
+siała baba jak nie wiedziała mak  --- score: 0.00650046910601796
+baba mak jak nie wiedziała siała  --- score: 0.006499631416700174
+baba mak siała jak nie wiedziała  --- score: 0.006498793727382389
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|████████████████████████████████████████████████████████████████████████████████████████████| 5040/5040 [00:00<00:00, 166441.95it/s]
+Original: wiele z permutacji wyrazów to zdania poprawne
+Reconstructed
+wiele to z zdania poprawne wyrazów permutacji  --- score: 0.00113922052100236
+wyrazów permutacji wiele to z zdania poprawne  --- score: 0.00113922052100236
+permutacji wiele to z zdania poprawne wyrazów  --- score: 0.00113922052100236
+permutacji wyrazów wiele to z zdania poprawne  --- score: 0.00113922052100236
+wiele to z zdania poprawne permutacji wyrazów  --- score: 0.00113922052100236
+wyrazów wiele to z zdania poprawne permutacji  --- score: 0.00113922052100236
+----------------------------------------------------------------------------------------------------
+Creating successor mapping: 100%|█████████████████████████████████████████████████████████████████████████████| 179473348/179473348 [23:17<00:00, 128465.27it/s]
+---------------------------------------- TRIGRAM ----------------------------------------
+Computing naturalness: 100%|███████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:00<00:00, 10404.04it/s]
+Original: judyta dała wczoraj stefanowi czekoladki
+Reconstructed
+task4.py:111: RuntimeWarning: invalid value encountered in long_scalars
+  print(' '.join(pos_sent), f' --- score: {possible_naturalness[i] / total_naturalness}')
+czekoladki stefanowi wczoraj dała judyta  --- score: nan
+czekoladki stefanowi wczoraj judyta dała  --- score: nan
+dała wczoraj judyta czekoladki stefanowi  --- score: nan
+dała wczoraj stefanowi judyta czekoladki  --- score: nan
+dała wczoraj stefanowi czekoladki judyta  --- score: nan
+dała wczoraj czekoladki judyta stefanowi  --- score: nan
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|██████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:00<00:00, 104704.91it/s]
+Original: babuleńka miała dwa rogate koziołki
+Reconstructed
+koziołki rogate dwa miała babuleńka  --- score: nan
+koziołki rogate dwa babuleńka miała  --- score: nan
+miała dwa babuleńka koziołki rogate  --- score: nan
+miała dwa rogate babuleńka koziołki  --- score: nan
+miała dwa rogate koziołki babuleńka  --- score: nan
+miała dwa koziołki babuleńka rogate  --- score: nan
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|███████████████████████████████████████████████████████████████████████████████████████████████| 720/720 [00:00<00:00, 57215.64it/s]
+Original: wczoraj wieczorem spotkałem pewną piękną kobietę
+Reconstructed
+kobietę piękną pewną spotkałem wieczorem wczoraj  --- score: nan
+spotkałem wczoraj pewną wieczorem piękną kobietę  --- score: nan
+spotkałem wczoraj wieczorem kobietę pewną piękną  --- score: nan
+spotkałem wczoraj wieczorem piękną kobietę pewną  --- score: nan
+spotkałem wczoraj wieczorem piękną pewną kobietę  --- score: nan
+spotkałem wczoraj wieczorem pewną kobietę piękną  --- score: nan
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|███████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:00<00:00, 55376.44it/s]
+Original: ciekawe jak dobrze to zadziała
+Reconstructed
+jak to dobrze zadziała ciekawe  --- score: 0.270042194092827
+jak to dobrze ciekawe zadziała  --- score: 0.270042194092827
+ciekawe jak to dobrze zadziała  --- score: 0.10126582278481013
+ciekawe jak to zadziała dobrze  --- score: 0.10126582278481013
+to jak dobrze zadziała ciekawe  --- score: 0.027426160337552744
+to jak dobrze ciekawe zadziała  --- score: 0.027426160337552744
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|███████████████████████████████████████████████████████████████████████████████████████████████| 720/720 [00:00<00:00, 86406.26it/s]
+Original: nie mam pojęcia o czym mówisz
+Reconstructed
+nie mam pojęcia o czym mówisz  --- score: 0.08804675716440423
+nie mam pojęcia o mówisz czym  --- score: 0.08804675716440423
+nie mam pojęcia czym o mówisz  --- score: 0.08804675716440423
+nie mam pojęcia czym mówisz o  --- score: 0.08804675716440423
+nie mam pojęcia mówisz o czym  --- score: 0.08804675716440423
+nie mam pojęcia mówisz czym o  --- score: 0.08804675716440423
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|███████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:00<00:00, 46780.97it/s]
+Original: niech ta szmata ci powie
+Reconstructed
+powie ci szmata ta niech  --- score: nan
+powie ci szmata niech ta  --- score: nan
+ta szmata niech powie ci  --- score: nan
+ta szmata ci niech powie  --- score: nan
+ta szmata ci powie niech  --- score: nan
+ta szmata powie niech ci  --- score: nan
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|███████████████████████████████████████████████████████████████████████████████████████████████| 720/720 [00:00<00:00, 86485.45it/s]
+Original: siała baba mak nie wiedziała jak
+Reconstructed
+nie wiedziała jak baba mak siała  --- score: 0.12903225806451613
+nie wiedziała jak mak siała baba  --- score: 0.12903225806451613
+nie wiedziała jak baba siała mak  --- score: 0.12903225806451613
+nie wiedziała jak siała mak baba  --- score: 0.12903225806451613
+nie wiedziała jak siała baba mak  --- score: 0.12903225806451613
+nie wiedziała jak mak baba siała  --- score: 0.12903225806451613
+----------------------------------------------------------------------------------------------------
+Computing naturalness: 100%|█████████████████████████████████████████████████████████████████████████████████████████████| 5040/5040 [00:00<00:00, 78409.26it/s]
+Original: wiele z permutacji wyrazów to zdania poprawne
+Reconstructed
+to wiele z permutacji poprawne wyrazów zdania  --- score: 0.03685897435897436
+to wiele z zdania permutacji wyrazów poprawne  --- score: 0.03685897435897436
+to wiele z permutacji wyrazów zdania poprawne  --- score: 0.03685897435897436
+to wiele z permutacji wyrazów poprawne zdania  --- score: 0.03685897435897436
+to wiele z permutacji zdania wyrazów poprawne  --- score: 0.03685897435897436
+to wiele z permutacji zdania poprawne wyrazów  --- score: 0.03685897435897436
+----------------------------------------------------------------------------------------------------
