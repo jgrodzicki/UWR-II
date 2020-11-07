@@ -44,8 +44,8 @@ class Game:
             if points[i-1][1] == points[i][1]:
                 self.landing_spot = LandingSpot(start=points[i-1][0], end=points[i][0], height=points[i][1])
 
-            for y in np.linspace(points[i-1][1], points[i][1]+1, points[i][0] - points[i-1][0]):
-                y = round(int(y))
+            for y in np.linspace(points[i-1][1], points[i][1]+1, points[i][0] - points[i-1][0]+1):
+                y = int(round(y))
                 self.surface.append(y)
         self.surface = np.array(self.surface)
 
@@ -55,7 +55,7 @@ class Game:
                 0 <= self.fuel_left)
 
     def on_ground(self, x: float, y: float) -> bool:
-        return y <= self.surface[round(int(x))]
+        return y <= self.surface[int(round(x))]
 
     def landed_successfully(self) -> bool:
         assert self.landing_spot is not None
@@ -85,17 +85,18 @@ class Game:
 
     def update(self) -> None:
         prev_x, prev_y = self.x, self.y
-        self.x += self.h_speed
-        self.y += self.v_speed
 
-        self.v_speed += self.G
+        rotation_radians = self.rotation * np.pi / 180
+        acc_h = -np.sin(rotation_radians) * self.power
+        acc_v = np.cos(rotation_radians) * self.power + self.G
+
+        self.x += self.h_speed + 0.5 * acc_h
+        self.y += self.v_speed + 0.5 * acc_v
+
+        self.h_speed += acc_h
+        self.v_speed += acc_v
 
         self.fuel_left -= self.power
-
-        # update speeds
-        rotation_radians = self.rotation * np.pi / 180
-        self.v_speed += np.cos(rotation_radians) * self.power
-        self.h_speed += -np.sin(rotation_radians) * self.power
 
         if not self.is_alive() or self.on_ground(x=self.x, y=self.y) or self.hit_surface(prev_x=prev_x, prev_y=prev_y):
             self.is_in_air = False
@@ -233,7 +234,7 @@ class ES:
             self.population = self._random_population()
             self.evals = game.evaluate_population(self.population)
         else:
-            self.population = self.population[:, 2:]
+            self.population = self.population[:, 2:]  # pointless for the individuals that had different first move that we did
             to_append = []
 
             og_state = game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power, game.is_in_air
@@ -299,39 +300,18 @@ if __name__ == '__main__':
     print(rotation, power)
 
     while game.is_in_air and len(best_ind):
-        # state = game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power
-        if best_ind_eval > -MINUS_FOR_BEING_IN_AIR:
-            input()
-        else:
-            game.get_input()
+        game.get_input()
 
         game_rotation, game_power = game.rotation, game.power
 
-        if best_ind_eval < -MINUS_FOR_BEING_IN_AIR:
+        if len(best_ind) == 0 or best_ind_eval < -MINUS_FOR_CRASH:
             best_ind, best_ind_eval = es.run(game)
         else:
             log(f'optimal: {best_ind[:10]}')
-            # game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power = state
 
         rotation, power = best_ind[:2]
         best_ind = best_ind[2:]
         raw_rotation = rotation
-
-        # log(f'raw rotation: {rotation}')
-        #
-
-        if best_ind_eval > -MINUS_FOR_BEING_IN_AIR:
-            game.make_move(rotation, power)
-            game.update()
-            log(f'raw rotation: {raw_rotation}')
-            log(f'{" ".join(map(lambda f: str(round(int(f))), [game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power]))}')
-
-        # og_state = game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power, game.is_in_air
-        # game.make_move(rotation, power)
-        # if not game.is_in_air:
-        #     rotation = 0
-        #
-        # game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power, game.is_in_air = og_state
 
         rotation = max(min(90, game_rotation + rotation), -90)
         power = max(min(4, game_power + power), 0)
