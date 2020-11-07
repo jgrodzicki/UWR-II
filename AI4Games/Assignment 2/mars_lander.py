@@ -5,13 +5,15 @@ import time
 
 LandingSpot = NamedTuple('LandingSpot', (('start', int), ('end', int), ('height', int)))
 Position = NamedTuple('Position', (('x', int), ('y', int)))
-Move = NamedTuple('Move', (('rotation', int), ('power', int)))
+# Move = NamedTuple('Move', (('rotation', int), ('power', int)))
+
 
 def log(msg):
     print(msg, file=sys.stderr)
 
+
 class Game:
-    def __init__(self) ->  None:
+    def __init__(self) -> None:
         self.surface: List[int] = []
         self.landing_spot: Optional[LandingSpot] = None 
         self.x: float = 2500
@@ -46,9 +48,7 @@ class Game:
                 0 <= self.y < 3000 and
                 -500 < self.h_speed < 500 and
                 -500 < self.v_speed < 500 and
-                0 <= self.fuel_left <= 2000 and
-                -90 <= self.rotation <= 90 and
-                0 <= self.power <= 4)
+                0 <= self.fuel_left <= 2000)
     
     def on_ground(self, x: float, y: float) -> bool:
         return y <= self.surface[int(x)]
@@ -69,49 +69,94 @@ class Game:
         self.x, self.y, self.h_speed, self.v_speed, self.fuel, self.rotate, self.power = list(map(int, inp))
     
     def update(self) -> None:
-        self.v_speed += self.G / 2
+        self.v_speed += self.G
         self.x += self.h_speed
         self.y += self.v_speed
         
         self.fuel_left -= self.power
         
         # update speeds
-        self.v_speed += abs(np.cos(self.rotation)) * self.power
-        self.h_speed += -np.sin(self.rotation) * self.power
+        rotation_radians = self.rotation * np.pi / 180
+        self.v_speed += abs(np.cos(rotation_radians)) * self.power
+        self.h_speed += -np.sin(rotation_radians) * self.power
         
-        if not self.is_alive():
-            self.is_in_air = False
-            return
-        
-        if self.on_ground(x=self.x, y=self.y):
+        if not self.is_alive() or self.on_ground(x=self.x, y=self.y):
             self.is_in_air = False
     
-    def make_move(self, move) -> None:
-        self.rotation = move.rotation
-        self.power = move.power
-    
+    def make_move(self, rotation: int, power: int) -> None:
+        if self.rotation-15 <= rotation:
+            if rotation <= self.rotation+15:
+                self.rotation = rotation
+            else:
+                self.rotation = min(90, self.rotation+15)
+                
+        else:
+            self.rotation = max(-90, self.rotation-15)
+        
+        if self.power-1 <= power:
+            if power <= self.power+1:
+                self.power = power
+            else:
+                self.power = min(4, self.power+1)
+        else:
+            self.power = max(0, self.power-1)
+        
 
 class RandomAgent:
     def __init__(self) -> None:
         pass
     
-    def _select_action(self, rotation, power) -> Move:
-        rotation = np.random.randint(max(-90, rotation-15), min(90, rotation+15)+1)
-        power = np.random.randint(max(0, power-1), min(4, power+1)+1)
-        return Move(rotation=rotation, power=power)
+    def _select_action(self) -> Tuple[int, int]:
+        rotation = np.random.randint(-90, 90+1)
+        power = np.random.randint(0, 4+1)
+        return rotation, power
 
 
+class RHEA:
+    def __init__(self, population_size: int, chromosome_length: int) -> None:
+        self.population_size = population_size
+        self.chromosome_length = chromosome_length
+        self.population = self._random_population()
 
-if __name__=='__main__':
+    def _random_population(self) -> np.ndarray:
+        rotations = np.random.randint(-90, 91, self.population_size * self.chromosome_length)
+        powers = np.random.randint(0, 5, self.population_size * self.chromosome_length)
+        return np.c_[rotations, powers].reshape(self.population_size, -1)
+
+    # def _get_move(self, individual: np.ndarray) -> Tuple[int, int]:
+    #     rotation, power = individual[:2]
+    #     return rotation, power
+
+    def select_move(self) -> Tuple[int, int]:
+        rotation, power = self.population[0, :2]
+        self.population = self.population[:, 2:]
+        return rotation, power
+
+
+if __name__ == '__main__':
     game = Game()
-    game.load_map()
+    # game.load_map()
+    points = [[0, 1500], [1000, 2000], [2000, 500], [3500, 500], [5000, 1500], [6999, 1000]]
+    for i in range(1, len(points)):
+        if points[i-1][1] == points[i][1]:
+            game.landing_spot = LandingSpot(start=points[i-1][0], end=points[i][0], height=points[i][1])
+        
+        for y in np.linspace(points[i-1][1], points[i][1], points[i][0] - points[i-1][0]):
+            y = int(y)
+            game.surface.append(y)
     start = time.time()
     
-    agent = RandomAgent()
-    
+    # agent = RandomAgent()
+
     cnt = 0
     iters = []
-    while time.time() - start < 0.1:
+    t0 = t1 = t2 = t3 = 0
+
+    while time.time() - start < 1:
+        st = time.time()
+        rhea = RHEA(population_size=100, chromosome_length=0 + 100)
+        t0 += time.time() - st
+
         cnt += 1
         game.x = 2500
         game.y = 2700
@@ -121,15 +166,24 @@ if __name__=='__main__':
         
         it = 0
         while game.is_in_air:
-            move = agent._select_action(game.rotation, game.power)
-            game.make_move(move)
+            st = time.time()
+            rotation, power = rhea.select_move()
+            t1 += time.time() - st
+            st = time.time()
+            game.make_move(rotation, power)
+            t2 += time.time() - st
+            st = time.time()
             game.update()
+            t3 += time.time() - st
             it += 1
+
         iters.append(it)
+
     print(cnt)
     print(np.min(iters), np.mean(iters), np.max(iters))
+    print(t0, t1, t2, t3)
         
-        
+
     # game.x = 3000
     # game.y = 2500
     
