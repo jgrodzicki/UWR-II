@@ -9,9 +9,8 @@ Position = NamedTuple('Position', (('x', int), ('y', int)))
 # Move = NamedTuple('Move', (('rotation', int), ('power', int)))
 
 
-MINUS_FOR_CRASH = 1e6
-MINUS_FOR_BEING_IN_AIR = 0
-
+BONUS_FOR_LANDING = 1e6
+PENALTY_FOR_CRASH = 1e6
 
 def log(msg):
     print(msg, file=sys.stderr)
@@ -43,7 +42,7 @@ class Game:
             if points[i-1][1] == points[i][1]:
                 self.landing_spot = LandingSpot(start=points[i-1][0], end=points[i][0], height=points[i][1])
 
-            for y in np.linspace(points[i-1][1], points[i][1]+1, points[i][0] - points[i-1][0]+1):
+            for y in np.linspace(points[i-1][1], points[i][1], points[i][0] - points[i-1][0]+1):
                 y = int(round(y))
                 self.surface.append(y)
         self.surface = np.array(self.surface)
@@ -54,12 +53,13 @@ class Game:
                 0 <= self.fuel_left)
 
     def on_ground(self, x: float, y: float) -> bool:
-        return round(y) < self.surface[int(round(x))]
+        return int(round(y)) < self.surface[int(round(x))]
 
     def landed_successfully(self) -> bool:
         assert self.landing_spot is not None
 
         return (
+            self.is_alive() and
             self.on_ground(self.x, self.y) and
             self.landing_spot.start <= self.x <= self.landing_spot.end and
             self.rotation == 0 and
@@ -130,18 +130,20 @@ class Game:
             if (not self.landing_spot.start + 50 < self.x < self.landing_spot.end - 50 or
                 abs(not self.landing_spot.height - self.y) < 50
             ):
-                eval -= (abs((self.landing_spot.start+self.landing_spot.end)/2 - self.x) + abs(self.landing_spot.height - self.y)) * 2
+                eval -= (abs((self.landing_spot.start + self.landing_spot.end) / 2 - self.x) + abs(
+                    self.landing_spot.height - self.y)) * 2
             if abs(self.v_speed) > 30:  # for safety margin
-                eval -= (abs(self.v_speed) - 0)**2
+                eval -= (abs(self.v_speed) - 0) ** 2
             if abs(self.h_speed) > 15:
-                eval -= (abs(self.h_speed) - 0)**2
-            # if abs(self.rotation) != 0:
-            #     eval -= abs(self.rotation)
+                eval -= (abs(self.h_speed) - 0) ** 2
+                # if abs(self.rotation) != 0:
+                #     eval -= abs(self.rotation)
+
 
             if not self.is_alive() or not self.landed_successfully():
-                eval -= MINUS_FOR_CRASH
-            if self.is_alive():
-                eval -= MINUS_FOR_BEING_IN_AIR
+                eval -= PENALTY_FOR_CRASH
+            if not self.is_alive() and self.landed_successfully():
+                eval += BONUS_FOR_LANDING
             evals.append(eval)
 
         self.x, self.y, self.h_speed, self.v_speed, self.fuel_left, self.rotation, self.power, self.is_in_air = og_state
@@ -154,6 +156,14 @@ class Game:
             individual = individual[2:]
             self.make_move(rotation, power)
             self.update()
+
+    def is_close_to_landing(self) -> bool:
+        # power 4 and rotation 0
+        # return (
+        #     self.landing_spot.start < self.x < self.landing_spot.end and
+        #     self.y - self.landing_spot.height < 5*abs(self.v_speed)
+        # )
+        return False
 
     # def plot_population(self, population: np.ndarray) -> None:
     #     og_state = self.x, self.y, self.h_speed, self.v_speed, self.fuel_left, self.rotation, self.power, self.is_in_air
@@ -208,6 +218,14 @@ class ES:
 
         return population
 
+    def crossover(self, population: np.ndarray) -> np.ndarray:
+        for idx1, idx2 in np.random.permutation(len(population)).reshape(-1, 2):
+            part = np.random.randint(0, population.shape[1])
+            tmp = population[idx1, :part].copy()
+            population[idx1, :part] = population[idx2, :part]
+            population[idx2, :part] = tmp
+        return population
+
     def parent_selection(self, population: np.ndarray, evals: np.ndarray) -> np.ndarray:
         norm_evals = evals - np.min(evals)
         if np.sum(norm_evals) == 0:
@@ -215,7 +233,7 @@ class ES:
         else:
             norm_evals = norm_evals / np.sum(norm_evals)
 
-        idxs = np.random.choice(self.population_size, size=self.population_size//2, p=norm_evals)
+        idxs = np.random.choice(self.population_size, size=self.population_size//2, p=norm_evals, replace=True)
         return population[idxs].copy()
 
     def population_selection(
@@ -288,6 +306,7 @@ class ES:
         while time.time() - start_time < time_limit:
             cnt += 1
             parents = self.parent_selection(self.population, self.evals)
+            # children = self.crossover(parents)
             children = self.mutate(parents)
             children_evals = game.evaluate_population(children)
             self.population, self.evals = self.population_selection(self.population, self.evals, children, children_evals)
@@ -309,7 +328,7 @@ if __name__ == '__main__':
     game = Game()
     game.load_map()
     st = time.time()
-    es = ES(population_size=10, chromosome_length=80, mutation_prob=0.05)
+    es = ES(population_size=20, chromosome_length=120, mutation_prob=0.05)
 
     game.get_input()
     best_ind, best_ind_eval = es.run(game, time_limit=0.98)
@@ -317,8 +336,8 @@ if __name__ == '__main__':
     rotation, power = best_ind[:2]
     best_ind = best_ind[2:]
 
-    game.make_move(rotation, power)
-    game.update()
+    # game.make_move(rotation, power)
+    # game.update()
 
     prev_rotation, prev_power = rotation, power
 
@@ -333,27 +352,34 @@ if __name__ == '__main__':
         # if best_ind_eval < -MINUS_FOR_CRASH:
         #     game.get_input()
         # else:
-        input()
+        # input()
+
+        game.get_input()
 
         game_rotation, game_power = game.rotation, game.power
 
-        if len(best_ind) == 0 or best_ind_eval < -MINUS_FOR_CRASH:
-            best_ind, best_ind_eval = es.run(game, prev_rotation=prev_rotation, prev_power=prev_power)
-        else:
-            log(f'optimal: {best_ind[:10]}')
+        # if len(best_ind) == 0 or best_ind_eval < -PENALTY_FOR_CRASH:
+        #     best_ind, best_ind_eval = es.run(game, prev_rotation=prev_rotation, prev_power=prev_power)
+        # else:
+        #     log(f'optimal: {best_ind[:10]}')
+
+        best_ind, best_ind_eval = es.run(game, prev_rotation=prev_rotation, prev_power=prev_power)
 
         rotation, power = best_ind[:2]
         best_ind = best_ind[2:]
 
         # if best_ind_eval > -MINUS_FOR_CRASH:
-        game.make_move(rotation, power)
-        game.update()
-        log(f'{" ".join(map(lambda f: str(int(round(f))), [game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power]))}')
+        # game.make_move(rotation, power)
+        # game.update()
+        # log(f'{" ".join(map(lambda f: str(int(round(f))), [game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power]))}')
 
         prev_rotation, prev_power = rotation, power
 
         rotation = max(min(90, game_rotation + rotation), -90)
         power = max(min(4, game_power + power), 0)
+
+        if game.is_close_to_landing():
+            rotation, power = 0, 4
 
         print(rotation, power)
 
