@@ -32,7 +32,6 @@ class Game:
 
         self.G: float = -3.711
 
-
     def load_map(self) -> None:
         N = int(input())
         points = []
@@ -55,7 +54,7 @@ class Game:
                 0 <= self.fuel_left)
 
     def on_ground(self, x: float, y: float) -> bool:
-        return y <= self.surface[int(round(x))]
+        return round(y) < self.surface[int(round(x))]
 
     def landed_successfully(self) -> bool:
         assert self.landing_spot is not None
@@ -80,8 +79,17 @@ class Game:
         # return False
         return False
 
+    # def get_state(self) -> List[float]:
+    #     return [self.x, self.y, self.h_speed, self.v_speed, self.fuel_left, self.rotation, self.power]
+    #
+    # def set_state(self, x: float, y: float, h_speed: float, v_speed: float, fuel_left, rotation, power):
+
     def get_input(self) -> None:
         self.x, self.y, self.h_speed, self.v_speed, self.fuel_left, self.rotation, self.power = list(map(int, input().split()))
+
+    def make_move(self, rotation: int, power: int) -> None:
+        self.rotation = max(min(90, self.rotation+rotation), -90)
+        self.power = max(min(4, self.power+power), 0)
 
     def update(self) -> None:
         prev_x, prev_y = self.x, self.y
@@ -101,21 +109,16 @@ class Game:
         if not self.is_alive() or self.on_ground(x=self.x, y=self.y) or self.hit_surface(prev_x=prev_x, prev_y=prev_y):
             self.is_in_air = False
 
-    def make_move(self, rotation: int, power: int) -> None:
-        self.rotation = max(min(90, self.rotation+rotation), -90)
-        self.power = max(min(4, self.power+power), 0)
-
     def evaluate_population(self, population: np.ndarray) -> np.ndarray:
-        """
-        Evaluate by checking if landed on the spot
-        """
+        assert self.landing_spot is not None
+
         evals = []
 
         og_state = self.x, self.y, self.h_speed, self.v_speed, self.fuel_left, self.rotation, self.power, self.is_in_air
         for individual in population:
             self.x, self.y, self.h_speed, self.v_speed, self.fuel_left, self.rotation, self.power, self.is_in_air = og_state
 
-            eval = 0
+            eval: float = 0
 
             while len(individual) and self.is_in_air:
                 rotation, power = individual[:2]
@@ -149,7 +152,6 @@ class Game:
         while len(individual) and self.is_in_air:
             rotation, power = individual[:2]
             individual = individual[2:]
-
             self.make_move(rotation, power)
             self.update()
 
@@ -191,12 +193,13 @@ class ES:
         self.population_size = population_size
         self.chromosome_length = chromosome_length
         self.mutation_prob = mutation_prob
-        self.population = None
+        self.population: Optional[np.ndarray] = None
+        self.evals: List[float] = []
 
-    def _random_population(self) -> np.ndarray:
-        rotations = np.random.randint(-3, 4, self.population_size * self.chromosome_length) * 5
-        powers = np.random.randint(0, 2, self.population_size * self.chromosome_length)
-        return np.c_[rotations, powers].reshape(self.population_size, -1)
+    def _random_population(self, population_size) -> np.ndarray:
+        rotations = np.random.randint(-3, 4, population_size * self.chromosome_length) * 5
+        powers = np.random.randint(0, 2, population_size * self.chromosome_length)
+        return np.c_[rotations, powers].reshape(population_size, -1)
 
     def mutate(self, population: np.ndarray) -> np.ndarray:
         y_idxs, x_idxs = np.where(np.random.random((population.shape[0], self.chromosome_length)) <= self.mutation_prob)
@@ -227,19 +230,27 @@ class ES:
         idxs = np.argsort(all_evals)[-self.population_size:]
         return all_population[idxs], all_evals[idxs]
 
-    def run(self, game: Game, time_limit=0.08):
+    def run(self, game: Game, prev_rotation=None, prev_power=None, time_limit=0.08):
         start_time = time.time()
 
         if self.population is None:
-            self.population = self._random_population()
+            self.population = self._random_population(self.population_size)
             self.evals = game.evaluate_population(self.population)
         else:
-            self.population = self.population[:, 2:]  # pointless for the individuals that had different first move that we did
+            log(f'prev: {prev_rotation} {prev_power} ')
+            population_with_first_move = self.population[np.all(self.population[:, :2] == [prev_rotation, prev_power], axis=1)]
+            assert len(population_with_first_move) > 0, f'no individuals with rotation: {prev_rotation} and power: {prev_power}'
+            log(f'{len(population_with_first_move)} / {self.population_size} matching rotation and power')
+
+            population_with_first_move = population_with_first_move[:, 2:]
+            # evals = [0] * self.population_size
+
+            # self.population = self.population[:, 2:]
             to_append = []
 
             og_state = game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power, game.is_in_air
 
-            for i, individual in enumerate(self.population):
+            for i, individual in enumerate(population_with_first_move):
                 game.do_moves(individual)
                 after_ind_state = game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power, game.is_in_air
 
@@ -258,7 +269,19 @@ class ES:
 
                 game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power, game.is_in_air = og_state
 
-            self.population = np.hstack((self.population, to_append))
+            assert len(population_with_first_move) == len(to_append), f'{len(population_with_first_move)} != {len(to_append)}'
+            population_with_first_move = np.hstack((population_with_first_move, to_append))
+
+            if len(population_with_first_move) < self.population_size:  # replace rest of the population with the random individuals
+                assert population_with_first_move.shape[1] == 2*self.chromosome_length, f'{population_with_first_move.shape[1]} != {2*self.chromosome_length}'
+                self.population = np.vstack((population_with_first_move, self._random_population(self.population_size - len(population_with_first_move))))
+
+                assert len(self.evals) == len(self.population), f'{len(self.evals)} != {len(self.population)}, pop size: {self.population_size}'
+                self.evals[len(population_with_first_move):] = game.evaluate_population(self.population[len(population_with_first_move):])
+
+            else:
+                self.population = population_with_first_move
+
             assert self.population.shape == (self.population_size, 2*self.chromosome_length)
 
         cnt = 0
@@ -286,7 +309,7 @@ if __name__ == '__main__':
     game = Game()
     game.load_map()
     st = time.time()
-    es = ES(population_size=20, chromosome_length=80, mutation_prob=0.05)
+    es = ES(population_size=10, chromosome_length=80, mutation_prob=0.05)
 
     game.get_input()
     best_ind, best_ind_eval = es.run(game, time_limit=0.98)
@@ -294,24 +317,40 @@ if __name__ == '__main__':
     rotation, power = best_ind[:2]
     best_ind = best_ind[2:]
 
+    game.make_move(rotation, power)
+    game.update()
+
+    prev_rotation, prev_power = rotation, power
+
     rotation = max(min(90, game.rotation + rotation), -90)
     power = max(min(4, game.power + power), 0)
 
+    # if best_ind_eval > -MINUS_FOR_CRASH:
+
     print(rotation, power)
 
-    while game.is_in_air and len(best_ind):
-        game.get_input()
+    while game.is_in_air:
+        # if best_ind_eval < -MINUS_FOR_CRASH:
+        #     game.get_input()
+        # else:
+        input()
 
         game_rotation, game_power = game.rotation, game.power
 
         if len(best_ind) == 0 or best_ind_eval < -MINUS_FOR_CRASH:
-            best_ind, best_ind_eval = es.run(game)
+            best_ind, best_ind_eval = es.run(game, prev_rotation=prev_rotation, prev_power=prev_power)
         else:
             log(f'optimal: {best_ind[:10]}')
 
         rotation, power = best_ind[:2]
         best_ind = best_ind[2:]
-        raw_rotation = rotation
+
+        # if best_ind_eval > -MINUS_FOR_CRASH:
+        game.make_move(rotation, power)
+        game.update()
+        log(f'{" ".join(map(lambda f: str(int(round(f))), [game.x, game.y, game.h_speed, game.v_speed, game.fuel_left, game.rotation, game.power]))}')
+
+        prev_rotation, prev_power = rotation, power
 
         rotation = max(min(90, game_rotation + rotation), -90)
         power = max(min(4, game_power + power), 0)
