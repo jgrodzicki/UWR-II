@@ -13,6 +13,7 @@ from typing import NamedTuple, Dict, Optional, Union, List, Tuple, Deque
 import numpy as np  # type: ignore
 from enum import Enum
 from itertools import combinations
+import time
 
 # Auto-generated code below aims at helping you parse
 # the standard input according to the problem statement.
@@ -125,7 +126,19 @@ class Agent:
         if len(self.spells.items()) < self.max_known_spells:
             return Action(type=ActionType.LEARN, id=list(self.to_learn.items())[0][0])
         
-        return self.BFS()
+        action = self.BFS()
+        
+        if action is None:
+            castable_spells = list(filter(
+                lambda kv: kv[1].castable and
+                           self.can_brew_or_cast(inventory=self.my_state.inventory, recipe_or_spell=kv[1]),
+                self.spells.items()
+            ))
+            if len(castable_spells) > 0:
+                return Action(type=ActionType.CAST, id=castable_spells[0][0], comment='random cast')
+            else:
+                return Action(type=ActionType.REST, comment='jednak chillera')
+        return action
 
 
     def can_brew_or_cast(self, inventory: np.ndarray, recipe_or_spell: Union[Recipe, Spell]) -> bool:
@@ -136,7 +149,7 @@ class Agent:
         return np.all(new_inventory >= 0) and np.sum(new_inventory) <= 10
     
     
-    def BFS(self) -> Action:
+    def BFS(self) -> Optional[Action]:
         '''
         :param find_to_first: try to brew the first possible potion, if false will go for the most valuable one
         :return: first move to get to obtain the inventory to be able to brew a potion
@@ -147,19 +160,15 @@ class Agent:
         brew_recipes_ingredients = np.array([recipe.ingredients for recipe in self.brew_recipes.values()])
         brew_recipes_prices = [recipe.price for recipe in self.brew_recipes.values()]
         best_brew_recipe = list(self.brew_recipes.values())[np.argmax(brew_recipes_prices)]
+        
+        st_time = time.time()
 
         cnt = 0
-        while len(q) > 0:
+        while len(q) > 0 and time.time() - st_time < 0.04:
             cnt += 1
             log(cnt)
             
             inventory, spells, first_action = q.popleft()
-            # REST
-            q.append((
-                inventory,
-                self._spells_after_rest(spells=spells),
-                first_action if first_action is not None else Action(type=ActionType.REST),
-            ))
             
             # CAST a spell
             for id, spell in spells.items():
@@ -205,8 +214,13 @@ class Agent:
                                 ),
                             ))
                             times_used += 1
-        return Action(type=ActionType.REST, comment='No i chuj')
-        
+            # REST
+            q.append((
+                inventory,
+                self._spells_after_rest(spells=spells),
+                first_action if first_action is not None else Action(type=ActionType.REST),
+            ))
+        return None
         
     def _spells_after_rest(self, spells: Dict[int, Spell]) -> Dict[int, Spell]:
         new_spells = {}
