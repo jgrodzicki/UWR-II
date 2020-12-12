@@ -9,6 +9,19 @@ def log(msg):
     print(msg, file=sys.stderr, flush=True)
 
 
+def reverse_dir(dir: str) -> str:
+    new_dir = dir
+    if 'N' in dir:
+        new_dir = dir.replace('N', 'S')
+    if 'S' in dir:
+        new_dir = dir.replace('S', 'N')
+    if 'E' in dir:
+        new_dir = new_dir.replace('E', 'W')
+    if 'S' in dir:
+        new_dir = new_dir.replace('W', 'E')
+    return new_dir
+
+    
 class Distance:
     def __init__(self):
         self.N = self.NE = self.E = self.SE = self.S = self.SW = self.W = self.NW = 0
@@ -46,18 +59,20 @@ class Distances:
             if x-1 >= 0:
                 if y-1 >= 0:
                     if self._passable[y, x-1] and self._passable[y-1, x]:
-                        primary_jump_points.add((x-1, y-1))
-                        primary_jump_points_in_dir[(x-1, y-1)].add('N')
-                        primary_jump_points_in_dir[(x-1, y-1)].add('W')
+                        if self._passable[y-1, x-1]:
+                            primary_jump_points.add((x-1, y-1))
+                            primary_jump_points_in_dir[(x-1, y-1)].add('N')
+                            primary_jump_points_in_dir[(x-1, y-1)].add('W')
                         
                         # No idea why those are needed.
                         self._distances[y][x-1].set('NE', 0)
                         self._distances[y-1][x].set('SW', 0)
                 if y+1 < self._height:
                     if self._passable[y, x-1] and self._passable[y+1, x]:
-                        primary_jump_points.add((x-1, y+1))
-                        primary_jump_points_in_dir[(x-1, y+1)].add('S')
-                        primary_jump_points_in_dir[(x-1, y+1)].add('W')
+                        if self._passable[y+1, x-1]:
+                            primary_jump_points.add((x-1, y+1))
+                            primary_jump_points_in_dir[(x-1, y+1)].add('S')
+                            primary_jump_points_in_dir[(x-1, y+1)].add('W')
                         
                         # No idea why those are needed.
                         self._distances[y][x-1].set('SE', 0)
@@ -65,18 +80,20 @@ class Distances:
             if x+1 < self._width:
                 if y-1 >= 0:
                     if self._passable[y, x+1] and self._passable[y-1, x]:
-                        primary_jump_points.add((x+1, y-1))
-                        primary_jump_points_in_dir[(x+1, y-1)].add('N')
-                        primary_jump_points_in_dir[(x+1, y-1)].add('E')
+                        if self._passable[y-1, x+1]:
+                            primary_jump_points.add((x+1, y-1))
+                            primary_jump_points_in_dir[(x+1, y-1)].add('N')
+                            primary_jump_points_in_dir[(x+1, y-1)].add('E')
                         
                         # No idea why those are needed.
                         self._distances[y][x+1].set('NW', 0)
                         self._distances[y-1][x].set('SE', 0)
                 if y+1 < self._height:
                     if self._passable[y, x+1] and self._passable[y+1, x]:
-                        primary_jump_points.add((x+1, y+1))
-                        primary_jump_points_in_dir[(x+1, y+1)].add('S')
-                        primary_jump_points_in_dir[(x+1, y+1)].add('E')
+                        if self._passable[y+1, x+1]:
+                            primary_jump_points.add((x+1, y+1))
+                            primary_jump_points_in_dir[(x+1, y+1)].add('S')
+                            primary_jump_points_in_dir[(x+1, y+1)].add('E')
                         
                         # No idea why those are needed.
                         self._distances[y][x+1].set('SW', 0)
@@ -86,7 +103,9 @@ class Distances:
         # Straight jump points.
         straight_dists = dict()
         straight_jump_points = set()
+        straight_jump_points_in_dir = defaultdict(set)
         for x, y in primary_jump_points:
+            # xd, yd specifying next position going backward, dir - forward.
             all_possible_directions = [(-1, 0, 'E'), (1, 0, 'W'), (0, -1, 'S'), (0, 1, 'N')]
             good_directions = [(xd, yd, dir) for (xd, yd, dir) in all_possible_directions if dir in primary_jump_points_in_dir[(x, y)]]
             for xd, yd, dir in good_directions:
@@ -100,6 +119,7 @@ class Distances:
                         self._passable[new_y, new_x]
                     ):
                         state = (new_x, new_y, dir)
+                        straight_jump_points_in_dir[(new_x, new_y)].add(dir)
                         if state not in straight_dists:
                             straight_dists[state] = dist
                         else:
@@ -110,12 +130,16 @@ class Distances:
                         break
         for (x, y, dir), dist in straight_dists.items():
             self._distances[y][x].set(dir, dist)
+        log(straight_jump_points_in_dir)
             
         # Diagonal jump points.
         diag_dists = dict()
-        for x, y in straight_jump_points.union(primary_jump_points):
-            log(f'{x} {y} ')
-            for xd, yd, dir in [(-1, -1, 'SE'), (-1, 1, 'NE'), (1, -1, 'SW'), (1, 1, 'NW')]:
+        for x, y in primary_jump_points.union(straight_jump_points):
+            # xd, yd specifying next position going backward, dir - forward.
+            all_possible_directions = [(-1, -1, 'SE'), (-1, 1, 'NE'), (1, -1, 'SW'), (1, 1, 'NW')]
+            possible_dirs = straight_jump_points_in_dir[(x, y)].union(primary_jump_points_in_dir[(x, y)])
+            good_directions = [(xd, yd, dir) for (xd, yd, dir) in all_possible_directions if dir[0] in possible_dirs or dir[1] in possible_dirs]
+            for xd, yd, dir in good_directions:
                 dist = 0
                 new_x, new_y = x, y
                 while True:
@@ -123,7 +147,7 @@ class Distances:
                     new_x, new_y = new_x+xd, new_y+yd
                     if (0 <= new_x < self._width and
                         0 <= new_y < self._height and
-                        self._passable[new_y, new_x] and
+                        self._passable[new_y-yd, new_x] and self._passable[new_y, new_x-xd] and self._passable[new_y, new_x] and
                         (self._distances[y][x].get(dir[0]) != 0 or self._distances[y][x].get(dir[1]) != 0) and
                         self._distances[new_y][new_x].get(dir) == 0
                     ):
@@ -166,7 +190,6 @@ class Distances:
                     self._distances[y][x].set('S', self._distances[y + 1][x].S - 1)
                     self._distances[y][x].set('SE', self._distances[y + 1][x + 1].SE - 1)
                     self._distances[y][x].set('E', self._distances[y][x + 1].E - 1)
-
 
     def print_distances(self) -> None:
         for x in range(self._width):
