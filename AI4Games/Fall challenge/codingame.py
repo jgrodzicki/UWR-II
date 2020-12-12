@@ -193,8 +193,9 @@ class Agent:
                     
                     if spell.repeatable:
                         times_used = 2
+                        new_inventory += spell.ingredients
+                        
                         while self.can_brew_or_cast(inventory=new_inventory, recipe_or_spell=spell):
-                            new_inventory += spell.ingredients
                             can_brew = np.all(new_inventory >= brew_recipes_ingredients, axis=1)
 
                             if self.go_for_most_valuable and self.can_brew_or_cast(new_inventory, best_brew_recipe):
@@ -214,6 +215,7 @@ class Agent:
                                 ),
                             ))
                             times_used += 1
+                            new_inventory += spell.ingredients
             # REST
             q.append((
                 inventory,
